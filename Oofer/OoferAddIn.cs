@@ -1,5 +1,4 @@
-﻿using Outlook = Microsoft.Office.Interop.Outlook;
-using Microsoft.Office.Interop.Outlook;
+﻿using Microsoft.Office.Interop.Outlook;
 
 namespace Oofer
 {
@@ -42,6 +41,9 @@ namespace Oofer
                             apptItem.ReminderSet = false;
                             apptItem.ResponseRequested = false;
                             apptItem.Save();
+
+                            meetingItem.UnRead = false;
+                            meetingItem.Save();
 
                             CreateEmailItem(
                                 subjectEmail: $"Cleaned OOF/WFH: {apptItem.Subject}",

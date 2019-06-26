@@ -37,6 +37,11 @@ namespace Oofer
                     {
                         if (apptItem.ReminderSet || apptItem.BusyStatus != OlBusyStatus.olFree)
                         {
+                            var subjectText = apptItem.Subject;
+                            var busyStatusText = GetBusyStatusString(apptItem.BusyStatus);
+                            var reminderSetText = apptItem.ReminderSet ? "Reminder was set" : "Reminder was not set";
+                            var responseRequestedText = apptItem.ResponseRequested ? "Response was requested" : "Response was not requested";
+
                             apptItem.BusyStatus = OlBusyStatus.olFree;
                             apptItem.ReminderSet = false;
                             apptItem.ResponseRequested = false;
@@ -48,11 +53,30 @@ namespace Oofer
                             CreateEmailItem(
                                 subjectEmail: $"Cleaned OOF/WFH: {apptItem.Subject}",
                                 toEmail: currentUserAddressEntry.Address,
-                                bodyEmail: $"This appointment was cleaned:\n\n{apptItem.Subject}");
+                                bodyEmail: $"This appointment was cleaned:\n\n{subjectText}\n{busyStatusText}\n{reminderSetText}\n{responseRequestedText}");
                         }
                     }
                 }
             }
+        }
+
+        private static string GetBusyStatusString(OlBusyStatus busyStatus)
+        {
+            switch (busyStatus)
+            {
+                case OlBusyStatus.olBusy:
+                    return "Busy";
+                case OlBusyStatus.olFree:
+                    return "Free";
+                case OlBusyStatus.olOutOfOffice:
+                    return "Out of office";
+                case OlBusyStatus.olTentative:
+                    return "Tentative";
+                case OlBusyStatus.olWorkingElsewhere:
+                    return "Working elsewhere";
+            }
+
+            return "Unknown";
         }
 
         private void CreateEmailItem(string subjectEmail, string toEmail, string bodyEmail)
@@ -64,7 +88,6 @@ namespace Oofer
             eMail.Importance = OlImportance.olImportanceLow;
             eMail.Send();
         }
-
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {

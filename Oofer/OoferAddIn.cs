@@ -8,6 +8,7 @@ namespace Oofer
     /// https://docs.microsoft.com/en-us/visualstudio/vsto/how-to-programmatically-perform-actions-when-an-e-mail-message-is-received?view=vs-2019
     /// https://docs.microsoft.com/en-us/visualstudio/vsto/how-to-programmatically-send-e-mail-programmatically?view=vs-2019
     /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.office.interop.outlook.meetingitem?view=outlook-pia
+    /// https://docs.microsoft.com/en-us/visualstudio/vsto/how-to-programmatically-retrieve-unread-messages-from-the-inbox?view=vs-2019
     /// </summary>
     public partial class OoferAddIn
     {

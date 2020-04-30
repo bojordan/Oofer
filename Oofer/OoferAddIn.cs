@@ -1,4 +1,6 @@
 ﻿using Microsoft.Office.Interop.Outlook;
+using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace Oofer
 {
@@ -13,12 +15,33 @@ namespace Oofer
         private MAPIFolder _inbox = null;
         private Items _items = null;
 
+        private string[] _matches = new[]
+        {
+            "OOF",
+            "WFH",
+            "DOCTOR",
+            "OFFLINE",
+            "DR ",
+            " APPT",
+            "APPOINTMENT",
+            "TRAINING",
+            "SICK"
+        };
+
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             _outlookNameSpace = this.Application.GetNamespace("MAPI");
             _inbox = _outlookNameSpace.GetDefaultFolder(OlDefaultFolders.olFolderInbox);
             _items = _inbox.Items;
             _items.ItemAdd += new ItemsEvents_ItemAddEventHandler(Items_ItemAdd);
+
+            // run on unread items at startup
+            var unreadItems = _items.Restrict("[Unread]=true");
+
+            foreach (var unreadItem in unreadItems)
+            {
+                Items_ItemAdd(unreadItem);
+            }
         }
 
         private void Items_ItemAdd(object item)
@@ -32,7 +55,7 @@ namespace Oofer
                     var organizerAddressEntry = apptItem.GetOrganizer();
                     var currentUserAddressEntry = apptItem.Session?.CurrentUser?.AddressEntry;
 
-                    if ((apptItem.Subject.ToUpperInvariant().Contains("OOF") || apptItem.Subject.ToUpperInvariant().Contains("WFH")) &&
+                    if (_matches.Any(x => apptItem.Subject.ToUpperInvariant().Contains(x)) &&
                         organizerAddressEntry != currentUserAddressEntry)
                     {
                         if (apptItem.ReminderSet || apptItem.BusyStatus != OlBusyStatus.olFree)

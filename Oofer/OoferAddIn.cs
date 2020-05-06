@@ -1,4 +1,5 @@
 ﻿using Microsoft.Office.Interop.Outlook;
+using System;
 using System.Linq;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
@@ -9,6 +10,7 @@ namespace Oofer
     /// https://docs.microsoft.com/en-us/visualstudio/vsto/how-to-programmatically-send-e-mail-programmatically?view=vs-2019
     /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.office.interop.outlook.meetingitem?view=outlook-pia
     /// https://docs.microsoft.com/en-us/visualstudio/vsto/how-to-programmatically-retrieve-unread-messages-from-the-inbox?view=vs-2019
+    /// https://docs.microsoft.com/en-us/office/client-developer/outlook/pia/how-to-automatically-accept-a-meeting-request
     /// </summary>
     public partial class OoferAddIn
     {
@@ -26,7 +28,11 @@ namespace Oofer
             " APPT",
             "APPOINTMENT",
             "TRAINING",
-            "SICK"
+            "SICK",
+            "VACATION",
+            "WATCHING",
+            "VIEWING",
+            "ATTENDING"
         };
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
@@ -69,6 +75,12 @@ namespace Oofer
                             apptItem.BusyStatus = OlBusyStatus.olFree;
                             apptItem.ReminderSet = false;
                             apptItem.ResponseRequested = false;
+                            
+                            // We will not send the response, but want to accept the appointment on our side. See linked
+                            // docs to send the response, if desired.
+                            apptItem.Respond(OlMeetingResponse.olMeetingAccepted, true, Type.Missing);
+                            apptItem.UnRead = false;
+
                             apptItem.Save();
 
                             meetingItem.UnRead = false;

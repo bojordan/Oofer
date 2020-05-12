@@ -32,7 +32,8 @@ namespace Oofer
             "VACATION",
             "WATCHING",
             "VIEWING",
-            "ATTENDING"
+            "ATTENDING",
+            "FREE "
         };
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)

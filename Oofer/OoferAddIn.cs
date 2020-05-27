@@ -11,6 +11,7 @@ namespace Oofer
     /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.office.interop.outlook.meetingitem?view=outlook-pia
     /// https://docs.microsoft.com/en-us/visualstudio/vsto/how-to-programmatically-retrieve-unread-messages-from-the-inbox?view=vs-2019
     /// https://docs.microsoft.com/en-us/office/client-developer/outlook/pia/how-to-automatically-accept-a-meeting-request
+    /// https://docs.microsoft.com/en-us/office/client-developer/outlook/pia/how-to-get-the-smtp-address-of-the-sender-of-a-mail-item
     /// </summary>
     public partial class OoferAddIn
     {
@@ -25,6 +26,8 @@ namespace Oofer
             "DOCTOR",
             "OFFLINE",
             "DR ",
+            "DOCTOR",
+            "DENTIST",
             " APPT",
             "APPOINTMENT",
             "TRAINING",
@@ -33,7 +36,7 @@ namespace Oofer
             "WATCHING",
             "VIEWING",
             "ATTENDING",
-            "FREE "
+            "FREE"
         };
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
@@ -63,10 +66,32 @@ namespace Oofer
                     var organizerAddressEntry = apptItem.GetOrganizer();
                     var currentUserAddressEntry = apptItem.Session?.CurrentUser?.AddressEntry;
 
+                    CreateEmailItem(
+                        subjectEmail: $"Oofer debug: {meetingItem.Subject}",
+                        toEmail: currentUserAddressEntry.Address,
+                        bodyEmail: $"This meeting item was received:\n\n{meetingItem.Subject}");
+
+                    var alias = string.Empty;
+
+                    if (organizerAddressEntry.Type == "EX")
+                    {
+                        var exchangeUser = organizerAddressEntry.GetExchangeUser();
+                        alias = exchangeUser.Alias;
+                    }
+
+                    var organizerFirstName = organizerAddressEntry.Name.Split(' ').FirstOrDefault();
+
                     if (_matches.Any(x => apptItem.Subject.ToUpperInvariant().Contains(x)) &&
                         organizerAddressEntry != currentUserAddressEntry)
                     {
-                        if (apptItem.ReminderSet || apptItem.BusyStatus != OlBusyStatus.olFree)
+                        var needsAlias = !string.IsNullOrWhiteSpace(alias) &&
+                            !apptItem.Subject.Contains(organizerFirstName) &&
+                            !apptItem.Subject.Contains(alias);
+
+                        if (apptItem.ReminderSet ||
+                            apptItem.BusyStatus != OlBusyStatus.olFree ||
+                            apptItem.ResponseRequested == true ||
+                            needsAlias)
                         {
                             var subjectText = apptItem.Subject;
                             var busyStatusText = GetBusyStatusString(apptItem.BusyStatus);
@@ -76,7 +101,12 @@ namespace Oofer
                             apptItem.BusyStatus = OlBusyStatus.olFree;
                             apptItem.ReminderSet = false;
                             apptItem.ResponseRequested = false;
-                            
+
+                            if (needsAlias)
+                            {
+                                apptItem.Subject = $"{alias}: {subjectText}";
+                            }
+
                             // We will not send the response, but want to accept the appointment on our side. See linked
                             // docs to send the response, if desired.
                             apptItem.Respond(OlMeetingResponse.olMeetingAccepted, true, Type.Missing);
@@ -88,9 +118,9 @@ namespace Oofer
                             meetingItem.Save();
 
                             CreateEmailItem(
-                                subjectEmail: $"Cleaned OOF/WFH: {apptItem.Subject}",
+                                subjectEmail: $"Cleaned OOF/WFH: {subjectText}",
                                 toEmail: currentUserAddressEntry.Address,
-                                bodyEmail: $"This appointment was cleaned:\n\n{subjectText}\n{busyStatusText}\n{reminderSetText}\n{responseRequestedText}");
+                                bodyEmail: $"This appointment was cleaned:\n\n{apptItem.Subject}\n{busyStatusText}\n{reminderSetText}\n{responseRequestedText}");
                         }
                     }
                 }

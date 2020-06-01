@@ -36,7 +36,8 @@ namespace Oofer
             "WATCHING",
             "VIEWING",
             "ATTENDING",
-            "FREE"
+            "FREE",
+            "OUT "
         };
 
         private void ThisAddIn_Startup(object sender, System.EventArgs e)

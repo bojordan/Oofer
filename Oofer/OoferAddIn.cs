@@ -121,7 +121,17 @@ namespace Oofer
                             CreateEmailItem(
                                 subjectEmail: $"Cleaned OOF/WFH: {subjectText}",
                                 toEmail: currentUserAddressEntry.Address,
-                                bodyEmail: $"This appointment was cleaned:\n\n{apptItem.Subject}\n{busyStatusText}\n{reminderSetText}\n{responseRequestedText}");
+                                bodyEmail:
+                                    "This appointment was cleaned:\n\n" +
+                                    $"Previous values:\nSubject: {subjectText}\n" +
+                                    $"Busy status: {busyStatusText}\n" +
+                                    $"{reminderSetText}\n" +
+                                    $"{responseRequestedText}\n\n" +
+                                    "New values:\n" +
+                                    $"Subject: {apptItem.Subject}\n" +
+                                    $"Busy status: {GetBusyStatusString(apptItem.BusyStatus)}\n" +
+                                    "Reminder is not set\n" +
+                                    "Response is not requested\n");
                         }
                     }
                 }
